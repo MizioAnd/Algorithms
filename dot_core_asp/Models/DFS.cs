@@ -40,11 +40,12 @@ namespace dot_core_asp.Models
         public Vertex ResidingNode {get; set;}
         public Vertex Child1 {get; set;}
         public Vertex Child2 {get; set;}
+        public List<Vertex> Children {get; set;}
         public Vertex Parent {get; set;}
 
         public Node()
         {
-
+            Children = new List<Vertex>(){ Child1, Child2 };
         }
     }
 
@@ -62,6 +63,18 @@ namespace dot_core_asp.Models
             verticesInTree = new List<Vertex>();
             FillGraph();
         }
+
+        public Node GetNode(Vertex vertex)
+        {
+            var node = this.Nodes.Where(x => x.ResidingNode.idx == vertex.idx).FirstOrDefault();
+            return node;
+        }
+
+        public void PrintVisitedVertices()
+        {
+            Console.WriteLine(String.Join("; ", this.Nodes.Where(x => x.ResidingNode.Visited).Select(x => x.ResidingNode.idx).ToList()));
+        }
+
 
         public void FillGraph()
         {
@@ -170,11 +183,11 @@ namespace dot_core_asp.Models
 
             s.ResidingNode.Visited = true;
 
-            PrintVisitedVertices(G);
+            G.PrintVisitedVertices();
             while (StackElements.Count != 0)
             {
                 var v = StackElements.Top();
-                var nodeOfv = GetNode(G, v);
+                var nodeOfv = Node.GetNode(G, v);
                 StackElements.Pop();
 
                 // For all neighbours w of v in Graph G check if w is marked visited and push on to stack if not visited.
@@ -205,7 +218,7 @@ namespace dot_core_asp.Models
                     nodeOfv.Parent.Visited = true;
                 }
 
-                PrintVisitedVertices(G);
+                G.PrintVisitedVertices();
 
                 // Break when all nodes are marked as visited.
                 if (G.CountVisitedNode == G.Nodes.Count())
@@ -233,11 +246,6 @@ namespace dot_core_asp.Models
             }
         }
 
-        public void PrintVisitedVertices(Graph graph)
-        {
-            Console.WriteLine(String.Join("; ", graph.Nodes.Where(x => x.ResidingNode.Visited).Select(x => x.ResidingNode.idx).ToList()));
-        }
-
         public List<Node> GetNeighbours(Graph G, Vertex vertex)
         {
             var neighbours = new List<Node>();
@@ -250,12 +258,6 @@ namespace dot_core_asp.Models
                     
             }
             return neighbours;
-        }
-
-        public Node GetNode(Graph graph, Vertex vertex)
-        {
-            var node = graph.Nodes.Where(x => x.ResidingNode.idx == vertex.idx).FirstOrDefault();
-            return node;
         }
 
         public void DFSRecursive(Graph graph, Vertex vertex)
