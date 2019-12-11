@@ -28,10 +28,20 @@ namespace dot_core_asp.Models
         {
             return this.StackElements.LastOrDefault();
         }
+
+        public Vertex Bottom()
+        {
+            return this.StackElements.FirstOrDefault();
+        }
     
         public void Pop()
         {
             this.StackElements.RemoveAt(this.StackElements.Count - 1);
+        }
+
+        public void PopBottom()
+        {
+            this.StackElements.RemoveAt(0);
         }
     }
 
@@ -40,12 +50,12 @@ namespace dot_core_asp.Models
         public Vertex ResidingNode {get; set;}
         public Vertex Child1 {get; set;}
         public Vertex Child2 {get; set;}
-        public List<Vertex> Children {get; set;}
+        public List<Vertex> Children => new List<Vertex>(){ Child1, Child2 };
         public Vertex Parent {get; set;}
 
         public Node()
         {
-            Children = new List<Vertex>(){ Child1, Child2 };
+
         }
     }
 
@@ -187,7 +197,7 @@ namespace dot_core_asp.Models
             while (StackElements.Count != 0)
             {
                 var v = StackElements.Top();
-                var nodeOfv = Node.GetNode(G, v);
+                var nodeOfv = G.GetNode(v);
                 StackElements.Pop();
 
                 // For all neighbours w of v in Graph G check if w is marked visited and push on to stack if not visited.

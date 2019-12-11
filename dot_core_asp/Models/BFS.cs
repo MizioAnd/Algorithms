@@ -16,28 +16,24 @@ namespace dot_core_asp.Models
 
             while (StackElements.Count != 0)
             {
-                // Assume that a node can have many children. Define new type child and create List<Vertex> for all children with increasing indexing.
-                var v = StackElements.Top();
+                // Assume that a node in graph can have many children.
+                var v = StackElements.Bottom();
                 var nodeOfv = G.GetNode(v);
+                StackElements.PopBottom();
 
                 foreach (var child in nodeOfv.Children)
                 {
-                    if (!child.Visited)
+                    if ((child != null) && !child.Visited)
                     {
                         StackElements.Push(child);
                         child.Visited = true;
                     }
-                    else
-                    {
-                        StackElements.Push(G.GetNode(child).Parent);
-                        G.GetNode(child).Parent.Visited = true;
-                    }
+                    G.PrintVisitedVertices();
                 }
-
+                if (G.CountVisitedNode == G.Nodes.Count())
+                    break;
+                // G.PrintVisitedVertices();
             }
-
-
-            throw new NotImplementedException();
         }
 
         public void TestBFS()
@@ -45,7 +41,6 @@ namespace dot_core_asp.Models
             var graph = new Graph();
             var rootNode = graph.Nodes[0];
             BFSIterative(graph, rootNode);
-
         }
         
     }
