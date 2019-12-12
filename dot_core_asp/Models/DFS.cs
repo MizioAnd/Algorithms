@@ -84,6 +84,8 @@ namespace dot_core_asp.Models
         }
 
         public delegate void UpdateChildrenDelegate();
+        // We are using + and - operators, since that enables the same delegate to be used for any future defined function with same method signature.
+        // Otherwise we would have to declare a new delegate for every new method, which would be a waste of memory.
         UpdateChildrenDelegate uChildrenDel;
 
         public Node()
