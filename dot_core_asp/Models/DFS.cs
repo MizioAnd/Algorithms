@@ -45,17 +45,64 @@ namespace dot_core_asp.Models
         }
     }
 
-    public class Node 
+    public class Node
     {
         public Vertex ResidingNode {get; set;}
-        public Vertex Child1 {get; set;}
-        public Vertex Child2 {get; set;}
-        public List<Vertex> Children => new List<Vertex>(){ Child1, Child2 };
+        public List<Vertex> Children {get; set;}
         public Vertex Parent {get; set;}
+
+        private Vertex child1;
+        public Vertex Child1 
+        {
+            get
+            {
+                return child1;
+            } 
+            set
+            {
+                child1 = value;
+                uChildrenDel += this.UpdateChildren;
+                uChildrenDel();
+                uChildrenDel -= this.UpdateChildren;
+            }
+        }
+
+        private Vertex child2;
+        public Vertex Child2 
+        {
+            get
+            {
+                return child2;
+            }
+            set
+            {
+                child2 = value;
+                uChildrenDel += this.UpdateChildren;
+                uChildrenDel();
+                uChildrenDel -= this.UpdateChildren;
+            }            
+        }
+
+        public delegate void UpdateChildrenDelegate();
+        UpdateChildrenDelegate uChildrenDel;
 
         public Node()
         {
+            Children = new List<Vertex>(){ Child1, Child2 };
+        }
 
+        public void UpdateChildren()
+        {
+            if (Child1 != Children[0])
+            {
+                Children.RemoveAt(0);
+                Children.Insert(0, Child1);
+            }
+            else if (Child2 != Children[1])
+            {
+                Children.RemoveAt(1);
+                Children.Insert(1, Child2);                
+            }
         }
     }
 
