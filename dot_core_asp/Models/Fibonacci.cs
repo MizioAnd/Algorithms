@@ -27,14 +27,16 @@ namespace dot_core_asp.Models
 
         public void FibonacciIterative(int s)
         {
-            var range = Enumerable.Range(0, s+1);
+            var range = Enumerable.Range(2, s-1);
             var sums = new int[s+1];
+            sums[0] = 0;
+            sums[1] = 1;
             foreach (var ite in range)
             {
-                if (ite == 0 | ite == 1)
-                    sums[ite] = ite;
-                else
-                    sums[ite] = sums[ite-1] + sums[ite-2];
+                // if (ite == 0 | ite == 1)
+                    // sums[ite] = ite;
+                // else
+                sums[ite] = sums[ite-1] + sums[ite-2];
             }
             Console.WriteLine(String.Join("; ", sums));
         }
