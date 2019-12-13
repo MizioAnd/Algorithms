@@ -17,8 +17,11 @@ namespace dot_core_asp
         {
             // var dfs = new DFS();
             // dfs.TestDFS();
-            var bfs = new BFS();
-            bfs.TestBFS();
+            // var bfs = new BFS();
+            // bfs.TestBFS();
+
+            var fibo = new Fibonacci();
+            fibo.TestFibonacci();
 
             // DicesSumModel diceSumModel = new DicesSumModel();
             // diceSumModel.TestProbabilityDiceSum();
