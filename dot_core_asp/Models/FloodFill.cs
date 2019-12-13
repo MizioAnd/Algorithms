@@ -36,9 +36,70 @@ namespace dot_core_asp.Models
             FloodFillDFS(x+1, y+1, visited, n, m);
         }
 
+        public bool GraphTraversalBlockedSpacesAnd4MovesDFS(int x, int y, 
+        Dictionary<(int, int), bool> visited, Dictionary<(int, int), bool> isBlockedSpace, int n, int m, int destX, int destY)
+        {
+            // Algorithms that works when traversing a maze.
+            // PrintVisited(visited);
+            if (x == destX & y == destY)
+                return true;
+            else if (x >= n | y >= m)
+                return false;
+            else if (x < 0 | y < 0)
+                return false;
+            else if (isBlockedSpace[(x,y)])
+                return false;
+            else if (visited[(x,y)])
+                return false;
+
+            visited[(x,y)] = true;
+            PrintVisited(visited);
+
+            if (GraphTraversalBlockedSpacesAnd4MovesDFS(x-1, y, visited, isBlockedSpace, n, m, destX, destY))
+                return true;
+            else if (GraphTraversalBlockedSpacesAnd4MovesDFS(x, y-1, visited, isBlockedSpace, n, m, destX, destY))
+                return true;
+            else if (GraphTraversalBlockedSpacesAnd4MovesDFS(x, y+1, visited, isBlockedSpace, n, m, destX, destY))
+                return true;
+            else if (GraphTraversalBlockedSpacesAnd4MovesDFS(x+1, y, visited, isBlockedSpace, n, m, destX, destY))
+                return true;
+            else
+                return false;
+        }
+
         public static void PrintVisited(Dictionary<(int,int), bool> visited)
         {
             Console.WriteLine(String.Join("; ", visited.Where(ele => ele.Value).Select(ele => String.Format("{0}",ele.Key))));
+        }
+
+        public void TestGraphTraversalBlockedSpacesAnd4MovesDFS()
+        {
+            // The maze space is visualized like with blocked indices in (2,0), (1,1)
+            // 0 0 0 
+            // 0 X 0
+            // X 0 0
+
+            var visited = new Dictionary<(int, int), bool>();
+            var isBlockedSpace = new Dictionary<(int, int), bool>();
+            var blockedIndices = new List<(int, int)>(){ (2,0), (1,1) };
+            var dim = 3;
+            var keyRange = Enumerable.Range(0, dim);
+            (int, int) key;
+            foreach (var ite in keyRange)
+            {
+                foreach (var jte in keyRange)
+                {
+                    key = (ite, jte);
+                    visited[key] = false;
+    
+                    if (blockedIndices.Contains((ite,jte)))
+                        isBlockedSpace[key] = true;
+                    else
+                        isBlockedSpace[key] = false;
+                }
+            }
+            var hasArrivedAtDest = GraphTraversalBlockedSpacesAnd4MovesDFS(0,0, visited, isBlockedSpace, dim, dim, 2, 1);            
+            Console.WriteLine(String.Format("Arrived:{0}", hasArrivedAtDest));
         }
 
         public void TestFloodFillDFS()

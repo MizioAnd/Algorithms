@@ -20,11 +20,12 @@ namespace dot_core_asp
             // var bfs = new BFS();
             // bfs.TestBFS();
 
-            var fibo = new Fibonacci();
-            fibo.TestFibonacci();
+            // var fibo = new Fibonacci();
+            // fibo.TestFibonacci();
 
-            // var floodFill = new FloodFill();
+            var floodFill = new FloodFill();
             // floodFill.TestFloodFillDFS();
+            floodFill.TestGraphTraversalBlockedSpacesAnd4MovesDFS();
 
             // DicesSumModel diceSumModel = new DicesSumModel();
             // diceSumModel.TestProbabilityDiceSum();
