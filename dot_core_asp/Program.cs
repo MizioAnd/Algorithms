@@ -25,7 +25,8 @@ namespace dot_core_asp
 
             var floodFill = new FloodFill();
             // floodFill.TestFloodFillDFS();
-            floodFill.TestGraphTraversalBlockedSpacesAnd4MovesDFS();
+            // floodFill.TestGraphTraversalBlockedSpacesAnd4MovesDFS();
+            floodFill.TestShortestPathTraversal();
 
             // DicesSumModel diceSumModel = new DicesSumModel();
             // diceSumModel.TestProbabilityDiceSum();
