@@ -68,7 +68,7 @@ namespace dot_core_asp.Models
         }
 
         public bool ShortestPathTraversal(int x, int y, 
-        Dictionary<(int, int), bool> visited, Dictionary<(int, int), bool> isBlockedSpace, Dictionary<(int, int), int> distToDestination, int n, int m, int destX, int destY)
+        Dictionary<(int, int), bool> visited, Dictionary<(int, int), bool> isBlockedSpace, Dictionary<(int, int), int> distToDestination, int n, int m, int destX, int destY, (int, int) start = default((int, int)))
         {
             // Algorithms that works when traversing a maze and selects the shortest path
             // In every step it should update distance to destination for all visited block
@@ -80,7 +80,7 @@ namespace dot_core_asp.Models
             if (x == destX & y == destY)
             {
                 visited[(x,y)] = true;
-                ComputeAllDistancesToDestinationAndCompareNeighbourDist(distToDestination, (x, y), (destX, destY));
+                ComputeAllDistancesToDestinationAndCompareNeighbourDist(distToDestination, (x, y), start);
                 PrintVisited(visited);
                 PrintDistances(distToDestination);
                 return true;
@@ -95,10 +95,10 @@ namespace dot_core_asp.Models
                 return false;
 
             // compute distance to destination and insert value in dictionary
-            ComputeAllDistancesToDestinationAndCompareNeighbourDist(distToDestination, (x, y), (destX, destY));
+            ComputeAllDistancesToDestinationAndCompareNeighbourDist(distToDestination, (x, y), (0, 0));
             // if (!ComputeAllDistancesToDestinationAndCompareNeighbourDist(distToDestination, (x, y), (destX, destY)) & visited[(x,y)])
-            // if (!ComputeAllDistancesToDestinationAndCompareNeighbourDist(distToDestination, (x, y), (destX, destY)))
-            //     return false;
+            // if (ComputeAllDistancesToDestinationAndCompareNeighbourDist(distToDestination, (x, y), start))
+                // return false;
 
             visited[(x,y)] = true;
             PrintVisited(visited);
@@ -121,7 +121,7 @@ namespace dot_core_asp.Models
             var nearestNeighbours = new List<(int,int)>(){ (x_y.Item1-1 , x_y.Item2),(x_y.Item1 , x_y.Item2-1),(x_y.Item1+1 , x_y.Item2),(x_y.Item1 , x_y.Item2+1) };
             foreach (var neighbour in nearestNeighbours)
             {
-                if (distances.Keys.Contains(neighbour) && distance_to_source > distances[neighbour])
+                if (distances.Keys.Contains(neighbour) && distance_to_source < distances[neighbour])
                     return true;
             }
             return false;
@@ -137,17 +137,26 @@ namespace dot_core_asp.Models
             return Math.Abs(x0_y0.Item1 - x_y.Item1) + Math.Abs(x0_y0.Item2 - x_y.Item2);
         }
 
-
+        /// <summary>
+        /// Reassures that distance from start to next position is longer than from start to current position.
+        /// </summary>
+        /// <returns></returns>
         public bool ComputeAllDistancesToDestinationAndCompareNeighbourDist(Dictionary<(int, int), int> distances, (int, int) x_y, (int,int) x0_y0)
         {
-            var dist = DistanceToDestination(x_y, x0_y0);
-            if (!NeighbourDistanceIsShorter(distances, x_y, dist))
+            // Todo: we cannot use absolute distance since it has to be stepwise incrementing distance instead
+            var currentDistance = distances.Keys.Count;
+            var dist = currentDistance + 1;
+            // var dist = DistanceToDestination(x_y, x0_y0);
+            if (NeighbourDistanceIsShorter(distances, x_y, dist))
+            {
+                return true;
+            }                
+            else
             {
                 // Compute new distance
                 distances[x_y] = dist;
-                return true;
-            }                
-            return false;
+                return false;
+            }
 
             // Recompute other distances
             // foreach (var key in distances.Keys)
@@ -158,16 +167,11 @@ namespace dot_core_asp.Models
 
         public int SelectShortestPath(Dictionary<(int, int), bool> visited, out List<(int, int)> shortestPath, (int, int) start, (int, int) end)
         {
-            // in order for a path to qualify it has to have at least number of steps corresponding to absolute distance from start to source.
+            // Consider all connected step combinations possible corresponding to allowed moves and avoiding any blocked space
 
-            // consider all connected step combinations possible corresponding to allowed moves and avoiding any blocked space
-
-            // sum all 
-
-            // Todo: subtract one step for every four-connected steps taken. How will you identify clusters?
-
-            // shortestPath = visited.Where(x => x.Value).Select(x => x.Key).ToList();
+            // Simple correction of path. Subtract one step for every four-connected steps taken.
             var shortestPathDict = visited.ToDictionary(entry => entry.Key, entry => entry.Value);
+            var positionWithClosedCircle = new List<(int, int)>();
             var closedCircles = 0;
             var dim = (int)Math.Sqrt(visited.Keys.Count);
             var range = Enumerable.Range(0, dim-1);
@@ -179,22 +183,92 @@ namespace dot_core_asp.Models
                     if (visited[(key1, key2)] && visited[(key1+1, key2)] && visited[(key1+1, key2+1)] && visited[(key1, key2+1)])
                     {
                         closedCircles += 1;
-                        // shortestPath.Remove((key1, key2+1));
-                        shortestPathDict[(key1, key2+1)] = false;
-                        
+                        positionWithClosedCircle.Add((key1, key2));
+                        // shortestPathDict[(key1, key2+1)] = false;
+                        // Or
+                        // shortestPathDict[(key1+1, key2)] = false;
                     }
                 }
             }
-            var shortestPathDictMod = shortestPathDict.ToDictionary(entry => entry.Key, entry => entry.Value);
-            var nearestNeighbours = CountNearestNeighboursHorizontalVertical(shortestPathDict);
-            var nearestNeighboursLessThanTwo = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
 
-            foreach (var outlier in nearestNeighboursLessThanTwo)
-                shortestPathDictMod[outlier] = false;
+            // Examine all combinations for circle breaking.
+            var circleRemovalCombs = CircleRemovalCombinations(closedCircles, positionWithClosedCircle);
 
-            Console.WriteLine(String.Format("Nearest neighbours:{0}", String.Join(";", nearestNeighbours.Values.ToList())));
-            shortestPath = shortestPathDictMod.Where(x => x.Value).Select(x => x.Key).ToList();
+            // Todo: foreach of the circle removal combinations a shortest path needs to be computed.
+            shortestPath = FindShortestPath(shortestPathDict, circleRemovalCombs, start, end);
+
             return closedCircles;
+        }
+
+        private List<(int, int)> FindShortestPath(Dictionary<(int, int), bool> shortestPathDict, IList<IList<(int, int)>> circleRemovalCombs, (int, int) start, (int, int) end)
+        {
+            // Todo: foreach of the circle removal combinations a shortest path needs to be computed.
+            // var shortestPathAfterRemovalOfCircles = shortestPathDict.ToDictionary(entry => entry.Key, entry => entry.Value);
+            var shortestPathFinal = new Dictionary<(int, int), bool>();
+            var pathLenghtFinal = 0;
+            var nearestNeighboursFinal = new Dictionary<(int, int), int>();
+            foreach (var removalCombList in circleRemovalCombs)
+            {
+                var shortestPathAfterRemovalOfCircles = shortestPathDict.ToDictionary(entry => entry.Key, entry => entry.Value);
+                foreach (var removalComb in removalCombList)
+                {
+                    shortestPathAfterRemovalOfCircles[removalComb] = false;
+                }
+                var nearestNeighbours = CountNearestNeighboursHorizontalVertical(shortestPathAfterRemovalOfCircles);
+                var nearestNeighboursLessThanTwo = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
+
+                foreach (var outlier in nearestNeighboursLessThanTwo)
+                    shortestPathAfterRemovalOfCircles[outlier] = false;
+
+                var pathLenght = shortestPathAfterRemovalOfCircles.Where(x => x.Value).Count();
+                
+                if (pathLenghtFinal == 0 || pathLenght < pathLenghtFinal)
+                {
+                    pathLenghtFinal = pathLenght;
+                    shortestPathFinal = shortestPathAfterRemovalOfCircles;
+                    nearestNeighboursFinal = nearestNeighbours;
+                }
+            }
+
+            // var shortestPathDictMod = shortestPathFinal.ToDictionary(entry => entry.Key, entry => entry.Value);
+            // var nearestNeighbours = CountNearestNeighboursHorizontalVertical(shortestPathDict);
+            // var nearestNeighboursLessThanTwo = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
+
+            // foreach (var outlier in nearestNeighboursLessThanTwo)
+            //     shortestPathDictMod[outlier] = false;
+
+            Console.WriteLine(String.Format("Nearest neighbours:{0}", String.Join(";", nearestNeighboursFinal.Values.ToList())));
+            return shortestPathFinal.Where(x => x.Value).Select(x => x.Key).ToList();
+        }
+
+        private IList<IList<(int, int)>> CircleRemovalCombinations(int closedCircles, List<(int, int)> positionWithClosedCircle)
+        {
+            // var combinations = Math.Pow(2, closedCircles);
+            var circleRemovalCombs = new List<IList<(int, int)>>();
+
+            // Todo: create nested loops corresponding to combinations
+            foreach (var circleCoords in positionWithClosedCircle)
+            {
+                if (circleRemovalCombs.Count == 0)
+                {
+                    circleRemovalCombs.Add(new List<(int, int)>{(circleCoords.Item1, circleCoords.Item2+1)});
+                    // circleRemovalCombs.Add(new List<(int,int)>{(circleCoords.Item1+1, circleCoords.Item2)});
+                }
+                else
+                {
+                    // Todo: circleRemovalCombs is modified and cannot figurate in foreach.
+                    foreach (var listIdx in Enumerable.Range(0, circleRemovalCombs.Count))
+                    {
+                        var list = circleRemovalCombs[listIdx];
+                        var helplist = new List<(int, int)>(list);
+                        // helplist.Add((circleCoords.Item1, circleCoords.Item2+1));
+                        // list.Add((circleCoords.Item1+1, circleCoords.Item2));
+                        list.Add((circleCoords.Item1, circleCoords.Item2+1));
+                        // circleRemovalCombs.Add(helplist);
+                    }
+                }
+            }
+            return circleRemovalCombs;
         }
 
         private Dictionary<(int, int), int> CountNearestNeighboursHorizontalVertical(Dictionary<(int, int), bool> shortestPathDict)
@@ -253,6 +327,7 @@ namespace dot_core_asp.Models
             var distToDestination = new Dictionary<(int, int), int>();
             var isBlockedSpace = new Dictionary<(int, int), bool>();
             // todo: not able to arrive at source point even though a path does exist.
+            // var blockedIndices = new List<(int, int)>(){  };
             var blockedIndices = new List<(int, int)>(){ (1,1), (2,0), (1,2), (2,2), (3,2) };
             // var blockedIndices = new List<(int, int)>(){ (1,1), (0,2) };
             var dim = 5;
