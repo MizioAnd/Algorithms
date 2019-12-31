@@ -193,29 +193,39 @@ namespace dot_core_asp.Models
 
             // Examine all combinations for circle breaking.
             var circleRemovalCombs = CircleRemovalCombinations(closedCircles, positionWithClosedCircle);
-
-            // Todo: foreach of the circle removal combinations a shortest path needs to be computed.
+            
             shortestPath = FindShortestPath(shortestPathDict, circleRemovalCombs, start, end);
 
             return closedCircles;
         }
 
+        /// <summary>
+        /// Closed circle removal combinations based on number of nearest neighbours, which gets recomputed everytime an element is removed from a closed circle
+        /// </summary>
+        /// <returns></returns>
         private List<(int, int)> FindShortestPath(Dictionary<(int, int), bool> shortestPathDict, IList<IList<(int, int)>> circleRemovalCombs, (int, int) start, (int, int) end)
         {
-            // Todo: foreach of the circle removal combinations a shortest path needs to be computed.
-            // var shortestPathAfterRemovalOfCircles = shortestPathDict.ToDictionary(entry => entry.Key, entry => entry.Value);
             var shortestPathFinal = new Dictionary<(int, int), bool>();
             var pathLenghtFinal = 0;
             var nearestNeighboursFinal = new Dictionary<(int, int), int>();
+
             foreach (var removalCombList in circleRemovalCombs)
             {
                 var shortestPathAfterRemovalOfCircles = shortestPathDict.ToDictionary(entry => entry.Key, entry => entry.Value);
-                foreach (var removalComb in removalCombList)
-                {
-                    shortestPathAfterRemovalOfCircles[removalComb] = false;
-                }
                 var nearestNeighbours = CountNearestNeighboursHorizontalVertical(shortestPathAfterRemovalOfCircles);
                 var nearestNeighboursLessThanTwo = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
+                var nearestNeighboursLessThanThree = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
+
+                foreach (var removalComb in removalCombList)
+                {
+                    nearestNeighbours = CountNearestNeighboursHorizontalVertical(shortestPathAfterRemovalOfCircles);
+                    nearestNeighboursLessThanThree = nearestNeighbours.Where(x => x.Value < 3 && x.Key != start && x.Key != end).Select(x => x.Key);
+                    if (nearestNeighboursLessThanThree.Contains(removalComb))
+                        shortestPathAfterRemovalOfCircles[removalComb] = false;
+                }
+                
+                nearestNeighbours = CountNearestNeighboursHorizontalVertical(shortestPathAfterRemovalOfCircles);
+                nearestNeighboursLessThanTwo = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
 
                 foreach (var outlier in nearestNeighboursLessThanTwo)
                     shortestPathAfterRemovalOfCircles[outlier] = false;
@@ -230,41 +240,47 @@ namespace dot_core_asp.Models
                 }
             }
 
-            // var shortestPathDictMod = shortestPathFinal.ToDictionary(entry => entry.Key, entry => entry.Value);
-            // var nearestNeighbours = CountNearestNeighboursHorizontalVertical(shortestPathDict);
-            // var nearestNeighboursLessThanTwo = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
-
-            // foreach (var outlier in nearestNeighboursLessThanTwo)
-            //     shortestPathDictMod[outlier] = false;
-
             Console.WriteLine(String.Format("Nearest neighbours:{0}", String.Join(";", nearestNeighboursFinal.Values.ToList())));
             return shortestPathFinal.Where(x => x.Value).Select(x => x.Key).ToList();
         }
 
+        /// <summary>
+        /// Create all tuple combinations for removal of either (x, y+1) or (x+1, y). Or does simple removal model where (x, y+1) always gets removed in closed circle. 
+        /// Could be extended to also include (x+1, y+1) in combinatorics.
+        /// </summary>
+        /// <returns></returns>        
         private IList<IList<(int, int)>> CircleRemovalCombinations(int closedCircles, List<(int, int)> positionWithClosedCircle)
         {
-            // var combinations = Math.Pow(2, closedCircles);
-            var circleRemovalCombs = new List<IList<(int, int)>>();
+            // Flag for simple removal model where (x, y+1) always gets removed in closed circle.
+            var isSimpleRemoval = false;
 
-            // Todo: create nested loops corresponding to combinations
+            var circleRemovalCombs = new List<IList<(int, int)>>();
             foreach (var circleCoords in positionWithClosedCircle)
             {
                 if (circleRemovalCombs.Count == 0)
                 {
-                    circleRemovalCombs.Add(new List<(int, int)>{(circleCoords.Item1, circleCoords.Item2+1)});
-                    // circleRemovalCombs.Add(new List<(int,int)>{(circleCoords.Item1+1, circleCoords.Item2)});
+                    if (isSimpleRemoval)
+                        circleRemovalCombs.Add(new List<(int, int)>{(circleCoords.Item1, circleCoords.Item2+1)});
+                    else
+                    {
+                        circleRemovalCombs.Add(new List<(int, int)>{(circleCoords.Item1, circleCoords.Item2+1)});
+                        circleRemovalCombs.Add(new List<(int,int)>{(circleCoords.Item1+1, circleCoords.Item2)});
+                    }
                 }
                 else
                 {
-                    // Todo: circleRemovalCombs is modified and cannot figurate in foreach.
                     foreach (var listIdx in Enumerable.Range(0, circleRemovalCombs.Count))
                     {
                         var list = circleRemovalCombs[listIdx];
-                        var helplist = new List<(int, int)>(list);
-                        // helplist.Add((circleCoords.Item1, circleCoords.Item2+1));
-                        // list.Add((circleCoords.Item1+1, circleCoords.Item2));
-                        list.Add((circleCoords.Item1, circleCoords.Item2+1));
-                        // circleRemovalCombs.Add(helplist);
+                        if (isSimpleRemoval)
+                            list.Add((circleCoords.Item1, circleCoords.Item2+1));
+                        else
+                        {
+                            var helplist = new List<(int, int)>(list);
+                            helplist.Add((circleCoords.Item1, circleCoords.Item2+1));
+                            list.Add((circleCoords.Item1+1, circleCoords.Item2));
+                            circleRemovalCombs.Add(helplist);
+                        }
                     }
                 }
             }
