@@ -171,8 +171,30 @@ namespace dot_core_asp.Models
 
             // Simple correction of path. Subtract one step for every four-connected steps taken.
             var shortestPathDict = visited.ToDictionary(entry => entry.Key, entry => entry.Value);
+
+            IList<(int, int)> positionWithClosedCircle = new List<(int, int)>();
+            // Examine all combinations for circle breaking.
+            IList<IList<(int, int)>> circleRemovalCombs = new List<IList<(int, int)>>();
+
+            var rounds = 4;
+            while (rounds > 0)            
+            {
+                positionWithClosedCircle = PositionsWithClosedCircles(shortestPathDict);
+                if (positionWithClosedCircle.Count == 0)
+                    break;
+                circleRemovalCombs = CircleRemovalCombinations(positionWithClosedCircle);
+                shortestPathDict = FindShortestPath(shortestPathDict, circleRemovalCombs, start, end);
+                rounds -= 1;
+            }
+
+            shortestPath = shortestPathDict.Where(x => x.Value).Select(x => x.Key).ToList();
+            var closedCircles = shortestPath.Count();
+            return closedCircles;
+        }
+
+        private IList<(int, int)> PositionsWithClosedCircles(Dictionary<(int, int), bool> visited)
+        {
             var positionWithClosedCircle = new List<(int, int)>();
-            var closedCircles = 0;
             var dim = (int)Math.Sqrt(visited.Keys.Count);
             var range = Enumerable.Range(0, dim-1);
 
@@ -182,28 +204,18 @@ namespace dot_core_asp.Models
                 {
                     if (visited[(key1, key2)] && visited[(key1+1, key2)] && visited[(key1+1, key2+1)] && visited[(key1, key2+1)])
                     {
-                        closedCircles += 1;
                         positionWithClosedCircle.Add((key1, key2));
-                        // shortestPathDict[(key1, key2+1)] = false;
-                        // Or
-                        // shortestPathDict[(key1+1, key2)] = false;
                     }
                 }
             }
-
-            // Examine all combinations for circle breaking.
-            var circleRemovalCombs = CircleRemovalCombinations(closedCircles, positionWithClosedCircle);
-            
-            shortestPath = FindShortestPath(shortestPathDict, circleRemovalCombs, start, end);
-
-            return closedCircles;
+            return positionWithClosedCircle;
         }
 
         /// <summary>
         /// Closed circle removal combinations based on number of nearest neighbours, which gets recomputed everytime an element is removed from a closed circle
         /// </summary>
         /// <returns></returns>
-        private List<(int, int)> FindShortestPath(Dictionary<(int, int), bool> shortestPathDict, IList<IList<(int, int)>> circleRemovalCombs, (int, int) start, (int, int) end)
+        private Dictionary<(int, int), bool> FindShortestPath(Dictionary<(int, int), bool> shortestPathDict, IList<IList<(int, int)>> circleRemovalCombs, (int, int) start, (int, int) end)
         {
             var shortestPathFinal = new Dictionary<(int, int), bool>();
             var pathLenghtFinal = 0;
@@ -214,7 +226,7 @@ namespace dot_core_asp.Models
                 var shortestPathAfterRemovalOfCircles = shortestPathDict.ToDictionary(entry => entry.Key, entry => entry.Value);
                 var nearestNeighbours = CountNearestNeighboursHorizontalVertical(shortestPathAfterRemovalOfCircles);
                 var nearestNeighboursLessThanTwo = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
-                var nearestNeighboursLessThanThree = nearestNeighbours.Where(x => x.Value < 2 && x.Key != start && x.Key != end).Select(x => x.Key);
+                var nearestNeighboursLessThanThree = nearestNeighbours.Where(x => x.Value < 3 && x.Key != start && x.Key != end).Select(x => x.Key);
 
                 foreach (var removalComb in removalCombList)
                 {
@@ -241,7 +253,7 @@ namespace dot_core_asp.Models
             }
 
             Console.WriteLine(String.Format("Nearest neighbours:{0}", String.Join(";", nearestNeighboursFinal.Values.ToList())));
-            return shortestPathFinal.Where(x => x.Value).Select(x => x.Key).ToList();
+            return shortestPathFinal;
         }
 
         /// <summary>
@@ -249,7 +261,7 @@ namespace dot_core_asp.Models
         /// Could be extended to also include (x+1, y+1) in combinatorics.
         /// </summary>
         /// <returns></returns>        
-        private IList<IList<(int, int)>> CircleRemovalCombinations(int closedCircles, List<(int, int)> positionWithClosedCircle)
+        private IList<IList<(int, int)>> CircleRemovalCombinations(IList<(int, int)> positionWithClosedCircle)
         {
             // Flag for simple removal model where (x, y+1) always gets removed in closed circle.
             var isSimpleRemoval = false;
@@ -265,6 +277,7 @@ namespace dot_core_asp.Models
                     {
                         circleRemovalCombs.Add(new List<(int, int)>{(circleCoords.Item1, circleCoords.Item2+1)});
                         circleRemovalCombs.Add(new List<(int,int)>{(circleCoords.Item1+1, circleCoords.Item2)});
+                        circleRemovalCombs.Add(new List<(int,int)>{(circleCoords.Item1+1, circleCoords.Item2+1)});
                     }
                 }
                 else
@@ -277,9 +290,12 @@ namespace dot_core_asp.Models
                         else
                         {
                             var helplist = new List<(int, int)>(list);
+                            var helplist1 = new List<(int, int)>(list);
                             helplist.Add((circleCoords.Item1, circleCoords.Item2+1));
+                            helplist1.Add((circleCoords.Item1+1, circleCoords.Item2+1));
                             list.Add((circleCoords.Item1+1, circleCoords.Item2));
                             circleRemovalCombs.Add(helplist);
+                            circleRemovalCombs.Add(helplist1);
                         }
                     }
                 }
@@ -346,7 +362,7 @@ namespace dot_core_asp.Models
             // var blockedIndices = new List<(int, int)>(){  };
             var blockedIndices = new List<(int, int)>(){ (1,1), (2,0), (1,2), (2,2), (3,2) };
             // var blockedIndices = new List<(int, int)>(){ (1,1), (0,2) };
-            var dim = 5;
+            var dim = 8;
             var keyRange = Enumerable.Range(0, dim);
             (int, int) key;
             foreach (var ite in keyRange)
