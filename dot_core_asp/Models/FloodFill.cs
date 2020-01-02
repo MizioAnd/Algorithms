@@ -6,6 +6,14 @@ namespace dot_core_asp.Models
 {
     public class FloodFill
     {
+
+        public Graph GraphForBFS {get; set;}
+
+        public FloodFill()
+        {
+            GraphForShortestPath();
+        }
+
         // Flood fill algo area can be modelled as a graph traversal area problem represented as a matrix, where each element of the matrix is a vertex
         // that has nearest neighbours in any direction. For example with diagonals this implies 8 nearest neighbours for any vertex that is not a boundary
         // point.
@@ -101,6 +109,7 @@ namespace dot_core_asp.Models
                 // return false;
 
             visited[(x,y)] = true;
+            FillGraphForBFS((x,y), visited);
             PrintVisited(visited);
             PrintDistances(distToDestination);
 
@@ -125,6 +134,20 @@ namespace dot_core_asp.Models
                     return true;
             }
             return false;
+        }
+
+        public IList<(int,int)> NearestNeighbours((int x, int y) coord, Dictionary<(int, int), bool> visited)
+        {
+            var nearestNeighbours = new List<(int,int)>(){ (coord.x-1 , coord.y),(coord.x , coord.y-1),(coord.x+1 , coord.y),(coord.x , coord.y+1) };
+            var nearestNeighboursGrid = new List<(int, int)>();
+            foreach (var neighbour in nearestNeighbours)
+            {
+                if (visited.Keys.Contains(neighbour) && visited[neighbour])
+                {
+                    nearestNeighboursGrid.Add(neighbour);
+                }
+            }
+            return nearestNeighboursGrid;
         }
 
         public int DistanceToDestination((int, int) x_y, (int,int) x0_y0)
@@ -346,6 +369,70 @@ namespace dot_core_asp.Models
             Console.WriteLine(String.Join("; ", distances.Select(ele => String.Format("{0}",ele.Value))));
         }
 
+        public void FindShortestPathUsingBFS()
+        {
+            // todo: have BFS algo go through tree
+
+            var graph = GraphForBFS;
+
+        }
+
+        private void FillGraphForBFS((int x, int y) coord, Dictionary<(int,int), bool> visited)
+        {
+            // Insert coordinate as Node into graph
+            // Insert respective nearest neighbours corresponding to all edges of the Node into a List<Vertex> and leave child1 and child2 unused
+            
+            var nearestNeighbours = new List<Vertex>();
+            var vertexCurrent = new Vertex();
+            vertexCurrent.Visited = true;
+            vertexCurrent.idxGrid = coord;
+            GraphForBFS.verticesInTree.Add(vertexCurrent);
+
+            var nearestNeighboursIntermediate = NearestNeighbours(coord, visited);
+            foreach (var neighbour in nearestNeighboursIntermediate)
+            {
+                var neigbhourVert = GraphForBFS.verticesInTree.Where(entry => entry.idxGrid.Item1 == neighbour.Item1 & entry.idxGrid.Item2 == neighbour.Item2).FirstOrDefault();
+                nearestNeighbours.Add(neigbhourVert);
+
+                // Todo: Update previous visited steps with nearest neighbours if vertexCurrent is not already contained in their list of children.
+                var parentNodeChildren = GraphForBFS.Nodes.Where(x => x.ResidingNode.idxGrid.Item1 == neigbhourVert.idxGrid.Item1 &&  x.ResidingNode.idxGrid.Item2 == neigbhourVert.idxGrid.Item2).Select(x => x.Children).FirstOrDefault();
+                if (!parentNodeChildren.Contains(vertexCurrent))
+                {
+                    parentNodeChildren.Add(vertexCurrent);
+                }
+                
+                // check if vertex already exist and update a List<vertex> for the overall tree in order to re-use references.
+                // if (GraphForBFS.verticesInTree.Select(x => x.idxGrid).Contains(neighbour))
+                // {
+                //     nearestNeighbours.Add(GraphForBFS.verticesInTree.Where(x => x.idxGrid == neighbour).FirstOrDefault());
+                // }
+                // else
+                // {
+                //     var vertex = new Vertex();
+                //     vertex.Visited = true;
+                //     vertex.idxGrid = neighbour;
+                //     GraphForBFS.verticesInTree.Add(vertex);
+                //     nearestNeighbours.Add(vertex);
+                // }               
+            }
+
+            var node = new Node(children:new List<Vertex>());
+            node.ResidingNode = vertexCurrent;
+            foreach (var neighbourVertex in nearestNeighbours)
+            {
+                node.Children.Add(neighbourVertex);
+            }
+
+            GraphForBFS.Nodes.Add(node);
+        }
+
+        public void GraphForShortestPath()
+        {
+            var graph = new Graph();
+            graph.Nodes = new List<Node>();
+            graph.verticesInTree = new List<Vertex>();           
+            GraphForBFS = graph;
+        }
 
         public void TestShortestPathTraversal()
         {
@@ -360,9 +447,13 @@ namespace dot_core_asp.Models
             var isBlockedSpace = new Dictionary<(int, int), bool>();
             // todo: not able to arrive at source point even though a path does exist.
             // var blockedIndices = new List<(int, int)>(){  };
+
+            // Todo: below block leads to memory leak in case of dim=8, but runs fine for dim=6
+            // var blockedIndices = new List<(int, int)>(){ (1,1), (2,0), (1,2), (2,2), (3,2), (4,2) };
+
             var blockedIndices = new List<(int, int)>(){ (1,1), (2,0), (1,2), (2,2), (3,2) };
             // var blockedIndices = new List<(int, int)>(){ (1,1), (0,2) };
-            var dim = 8;
+            var dim = 5;
             var keyRange = Enumerable.Range(0, dim);
             (int, int) key;
             foreach (var ite in keyRange)

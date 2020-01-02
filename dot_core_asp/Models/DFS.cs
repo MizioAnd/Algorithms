@@ -88,9 +88,12 @@ namespace dot_core_asp.Models
         // Otherwise we would have to declare a new delegate for every new method, which would be a waste of memory.
         UpdateChildrenDelegate uChildrenDel;
 
-        public Node()
+        public Node(List<Vertex> children = null)
         {
-            Children = new List<Vertex>(){ Child1, Child2 };
+            if (children != null)
+                Children = children;
+            else
+                Children = new List<Vertex>(){ Child1, Child2 };
         }
 
         public void UpdateChildren()
@@ -111,8 +114,8 @@ namespace dot_core_asp.Models
     public class Graph
     {
         public List<List<Vertex>> NodesNew {get; private set;}
-        public List<Node> Nodes {get; private set;}
-        public List<Vertex> verticesInTree {get; private set;}
+        public List<Node> Nodes {get; set;}
+        public List<Vertex> verticesInTree {get; set;}
         public int CountVisitedNode => Nodes.Where(x => x.ResidingNode.Visited).Count();
 
         public Graph()
@@ -219,6 +222,7 @@ namespace dot_core_asp.Models
     {   
         public bool Visited {get; set;} = false;
         public int idx {get; set;}
+        public (int, int) idxGrid {get; set;}
     }
 
     /// <summary>
