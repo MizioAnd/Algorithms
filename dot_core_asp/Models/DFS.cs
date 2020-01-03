@@ -163,6 +163,7 @@ namespace dot_core_asp.Models
             {
                 var vertex = new Vertex();
                 vertex.idx = idx_vertex;
+                vertex.idxGrid = (idx_vertex,0);
                 verticesInTree.Add(vertex);
             }
 
