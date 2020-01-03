@@ -406,26 +406,12 @@ namespace dot_core_asp.Models
                 var neigbhourVert = GraphForBFS.verticesInTree.Where(entry => entry.idxGrid.Item1 == neighbour.Item1 & entry.idxGrid.Item2 == neighbour.Item2).FirstOrDefault();
                 nearestNeighbours.Add(neigbhourVert);
 
-                // Todo: Update previous visited steps with nearest neighbours if vertexCurrent is not already contained in their list of children.
+                // Update previous visited steps with nearest neighbours if vertexCurrent is not already contained in their list of children.
                 var parentNodeChildren = GraphForBFS.Nodes.Where(x => x.ResidingNode.idxGrid.Item1 == neigbhourVert.idxGrid.Item1 &&  x.ResidingNode.idxGrid.Item2 == neigbhourVert.idxGrid.Item2).Select(x => x.Children).FirstOrDefault();
                 if (!parentNodeChildren.Contains(vertexCurrent))
                 {
                     parentNodeChildren.Add(vertexCurrent);
                 }
-                
-                // check if vertex already exist and update a List<vertex> for the overall tree in order to re-use references.
-                // if (GraphForBFS.verticesInTree.Select(x => x.idxGrid).Contains(neighbour))
-                // {
-                //     nearestNeighbours.Add(GraphForBFS.verticesInTree.Where(x => x.idxGrid == neighbour).FirstOrDefault());
-                // }
-                // else
-                // {
-                //     var vertex = new Vertex();
-                //     vertex.Visited = true;
-                //     vertex.idxGrid = neighbour;
-                //     GraphForBFS.verticesInTree.Add(vertex);
-                //     nearestNeighbours.Add(vertex);
-                // }               
             }
 
             var node = new Node(children:new List<Vertex>());
