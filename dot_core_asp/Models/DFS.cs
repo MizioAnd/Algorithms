@@ -128,13 +128,15 @@ namespace dot_core_asp.Models
 
         public Node GetNode(Vertex vertex)
         {
-            var node = this.Nodes.Where(x => x.ResidingNode.idx == vertex.idx).FirstOrDefault();
+            // var node = this.Nodes.Where(x => x.ResidingNode.idx == vertex.idx).FirstOrDefault();
+            var node = this.Nodes.Where(x => x.ResidingNode.idxGrid == vertex.idxGrid).FirstOrDefault();
             return node;
         }
 
         public void PrintVisitedVertices()
         {
-            Console.WriteLine(String.Join("; ", this.Nodes.Where(x => x.ResidingNode.Visited).Select(x => x.ResidingNode.idx).ToList()));
+            // Console.WriteLine(String.Join("; ", this.Nodes.Where(x => x.ResidingNode.Visited).Select(x => x.ResidingNode.idx).ToList()));
+            Console.WriteLine(String.Join("; ", this.Nodes.Where(x => x.ResidingNode.Visited).Select(x => x.ResidingNode.idxGrid).ToList()));
         }
 
 

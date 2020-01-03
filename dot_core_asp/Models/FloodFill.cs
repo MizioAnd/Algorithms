@@ -88,6 +88,7 @@ namespace dot_core_asp.Models
             if (x == destX & y == destY)
             {
                 visited[(x,y)] = true;
+                FillGraphForBFS((x,y), visited);
                 ComputeAllDistancesToDestinationAndCompareNeighbourDist(distToDestination, (x, y), start);
                 PrintVisited(visited);
                 PrintDistances(distToDestination);
@@ -369,12 +370,23 @@ namespace dot_core_asp.Models
             Console.WriteLine(String.Join("; ", distances.Select(ele => String.Format("{0}",ele.Value))));
         }
 
-        public void FindShortestPathUsingBFS()
+        public IList<Vertex> FindShortestPathUsingBFS()
         {
-            // todo: have BFS algo go through tree
+            // BFS algo goes through tree
 
             var graph = GraphForBFS;
+            var rootNode = graph.Nodes[0];
 
+            // Reset all visited children to not visited.
+            foreach (var vertex in graph.verticesInTree)
+            {
+                vertex.Visited = false;
+            }
+
+            var bfs = new BFS();
+            bfs.BFSIterative(graph, rootNode);
+            var shortestPath = bfs.Paths.Last();
+            return shortestPath;
         }
 
         private void FillGraphForBFS((int x, int y) coord, Dictionary<(int,int), bool> visited)
@@ -471,11 +483,14 @@ namespace dot_core_asp.Models
             }
             var hasArrivedAtDest = ShortestPathTraversal(start.Item1, start.Item2, visited, isBlockedSpace, distToDestination, dim, dim, end.Item1, end.Item2);   
             var shortestPath = new List<(int,int)>();
+            var shortestPathBFS = FindShortestPathUsingBFS().Select(x => x.idxGrid);
             var closedCircles = SelectShortestPath(visited, out shortestPath, start, end);         
             Console.WriteLine(String.Format("Closed circles:{0}", closedCircles));
             Console.WriteLine(String.Format("Steps shortest path:{0}", visited.Where(x => x.Value).Count() - closedCircles));
             Console.WriteLine(String.Format("Shortest path:{0}", String.Join(";", shortestPath)));
             Console.WriteLine(String.Format("Steps shortest path:{0}", shortestPath.Count));
+            Console.WriteLine(String.Format("Shortest path BFS:{0}", String.Join(";", shortestPathBFS)));
+            Console.WriteLine(String.Format("Steps shortest path:{0}", shortestPathBFS.Count()));
             Console.WriteLine(String.Format("Arrived:{0}", hasArrivedAtDest));
         }
 
