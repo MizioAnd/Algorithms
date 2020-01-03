@@ -447,11 +447,11 @@ namespace dot_core_asp.Models
             // var blockedIndices = new List<(int, int)>(){  };
 
             // Todo: below block leads to memory leak in case of dim=8, but runs fine for dim=6
-            // var blockedIndices = new List<(int, int)>(){ (1,1), (2,0), (1,2), (2,2), (3,2), (4,2) };
+            var blockedIndices = new List<(int, int)>(){ (1,1), (2,0), (1,2), (2,2), (3,2), (4,2), (5,2) };
 
-            var blockedIndices = new List<(int, int)>(){ (1,1), (2,0), (1,2), (2,2), (3,2) };
+            // var blockedIndices = new List<(int, int)>(){ (1,1), (2,0), (1,2), (2,2), (3,2) };
             // var blockedIndices = new List<(int, int)>(){ (1,1), (0,2) };
-            var dim = 5;
+            var dim = 9;
             var keyRange = Enumerable.Range(0, dim);
             (int, int) key;
             foreach (var ite in keyRange)
@@ -470,11 +470,11 @@ namespace dot_core_asp.Models
             var hasArrivedAtDest = ShortestPathTraversal(start.Item1, start.Item2, visited, isBlockedSpace, distToDestination, dim, dim, end.Item1, end.Item2);   
             var shortestPath = new List<(int,int)>();
             var shortestPathBFS = FindShortestPathUsingBFS().Select(x => x.idxGrid);
-            var closedCircles = SelectShortestPath(visited, out shortestPath, start, end);         
-            Console.WriteLine(String.Format("Closed circles:{0}", closedCircles));
-            Console.WriteLine(String.Format("Steps shortest path:{0}", visited.Where(x => x.Value).Count() - closedCircles));
-            Console.WriteLine(String.Format("Shortest path:{0}", String.Join(";", shortestPath)));
-            Console.WriteLine(String.Format("Steps shortest path:{0}", shortestPath.Count));
+            // var closedCircles = SelectShortestPath(visited, out shortestPath, start, end);         
+            // Console.WriteLine(String.Format("Closed circles:{0}", closedCircles));
+            // Console.WriteLine(String.Format("Steps shortest path:{0}", visited.Where(x => x.Value).Count() - closedCircles));
+            // Console.WriteLine(String.Format("Shortest path:{0}", String.Join(";", shortestPath)));
+            // Console.WriteLine(String.Format("Steps shortest path:{0}", shortestPath.Count));
             Console.WriteLine(String.Format("Shortest path BFS:{0}", String.Join(";", shortestPathBFS)));
             Console.WriteLine(String.Format("Steps shortest path:{0}", shortestPathBFS.Count()));
             Console.WriteLine(String.Format("Arrived:{0}", hasArrivedAtDest));
