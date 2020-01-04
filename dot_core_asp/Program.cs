@@ -23,10 +23,13 @@ namespace dot_core_asp
             // var fibo = new Fibonacci();
             // fibo.TestFibonacci();
 
-            var floodFill = new FloodFill();
+            // var floodFill = new FloodFill();
             // floodFill.TestFloodFillDFS();
             // floodFill.TestGraphTraversalBlockedSpacesAnd4MovesDFS();
-            floodFill.TestShortestPathTraversal();
+            // floodFill.TestShortestPathTraversal();
+
+            var greedy = new GreedyAlgo();
+            greedy.ComputeMaxTasksCompleted();
 
             // DicesSumModel diceSumModel = new DicesSumModel();
             // diceSumModel.TestProbabilityDiceSum();
