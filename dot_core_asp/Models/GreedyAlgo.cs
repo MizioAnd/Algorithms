@@ -14,6 +14,7 @@ namespace dot_core_asp.Models
         // Time that a task takes to complete.
         public List<int> TaskTimes = Enumerable.Range(1, 10).ToList<int>();
         public IList<int> TotalTimesToCompleteATask = new List<int>();
+        public IList<int> PriorityObjRes = new List<int>();
         public List<int> Priorities = Enumerable.Range(1, 10).ToList<int>();
         public List<double> Ratios = new List<double>();
 
@@ -98,15 +99,13 @@ namespace dot_core_asp.Models
         /// Simple greedy algorithm.
         /// Calculate the maximum number of things you can accomplish in time T.
         /// </summary>
-        public void ComputeMaxTasksCompleted(bool isSimpleSort=true)
+        public void ComputeMaxTasksCompleted()
         {
             // compareMaxExceptOneIntegerDel += CompareMaxExceptOneInteger;
-            var timeT = 20;
+            var timeT = 2000;
 
             // var compareMethodInfo = RuntimeReflectionExtensions.GetMethodInfo(compareMaxExceptOneIntegerDel);
             // var del = compareMethodInfo.CreateDelegate(compareMethodInfo.DeclaringType);
-            if (isSimpleSort)
-                TaskTimes.Sort(CompareMaxExceptOneInteger);
             
             var completedTask = 0;
             var accumulatedTime = 0;
@@ -129,39 +128,38 @@ namespace dot_core_asp.Models
 
         public void ComputeMaxPrioritizedTasksCompleted()
         {
-            var timeT = 20;
             var sumTime = 0;
             var totalTaskTimes = new List<int>();
 
             // Prepare input
             Random rnd = new Random();
             Priorities = Priorities.Select(x => x = rnd.Next(1,11)).ToList<int>();
-            // TaskTimes.Reverse();
-
-            foreach (var taskTime in TaskTimes)
-            {
-                sumTime += taskTime;
-                totalTaskTimes.Add(sumTime);
-            }
 
             var ratios = RatioMinimizationObjectiveFun(TaskTimes, Priorities).ToList<double>();
-            Ratios = ratios;
+            // Ratios = ratios;
+            var taskTimes = TaskTimes.ToList<int>();
 
-            // Todo: find bug the simple greedy wins over advanced ratio greed algo. Probably ref mistake with ratios.
-
-            // Console.WriteLine("Compare with simple greedy algo sorted priorities.");
-            // ComputeMaxTasksCompleted(isSimpleSort:false);
-            // var ratiosCopy = Ratios.ToList<double>();
-            // Ratios = Priorities.Select(x => (double)x).ToList<double>();
-            // var sortedTaskTimes = SortByRatio(out Priorities);
-            // TaskTimes = sortedTaskTimes;
-            // Console.WriteLine(String.Format("Objective function value:{0}", PriorityObjectiveFun(TotalTimesToCompleteATask, Priorities)));
+            Console.WriteLine("Compare with simple greedy algo.");
+            var ratiosSimple = Priorities.Select(x => (double)x).ToList<double>();
+            GreedyModelResult(ratiosSimple, taskTimes);
 
             Console.WriteLine("Compare with advanced greedy algo.");
+            TotalTimesToCompleteATask = new List<int>();
+            GreedyModelResult(ratios, taskTimes);
+
+            Console.WriteLine("Is simple greedy {0} worse than adv greedy {1}:{2}", PriorityObjRes[0], PriorityObjRes[1], PriorityObjRes[0] > PriorityObjRes[1]);
+        }
+
+        public void GreedyModelResult(List<double> ratios, List<int> times)
+        {
             Ratios = ratios;
-            TaskTimes = SortByRatio(out Priorities);
-            ComputeMaxTasksCompleted(isSimpleSort:false);
-            Console.WriteLine(String.Format("Objective function value:{0}", PriorityObjectiveFun(TotalTimesToCompleteATask, Priorities)));
+            TaskTimes = times;
+            var prioritiesView = new List<int>();
+            TaskTimes = SortByRatio(out prioritiesView);
+            ComputeMaxTasksCompleted();
+            var priorityObjRes = PriorityObjectiveFun(TotalTimesToCompleteATask, prioritiesView);
+            PriorityObjRes.Add(priorityObjRes);
+            Console.WriteLine(String.Format("Objective function value:{0}", priorityObjRes));
         }
 
         public int PriorityObjectiveFun(IList<int> totalTimesToCompleteATask, IList<int> priorities)
