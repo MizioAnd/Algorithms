@@ -179,7 +179,7 @@ namespace dot_core_asp.Models
             var ratios = new List<double>();
 
             foreach (var ite in Enumerable.Range(0, priorities.Count))
-                ratios.Add((double)timesToCompleteATask[ite]/priorities[ite]);
+                ratios.Add((double)priorities[ite]/timesToCompleteATask[ite]);
             return ratios;
         }
 
