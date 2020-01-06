@@ -29,7 +29,8 @@ namespace dot_core_asp
             // floodFill.TestShortestPathTraversal();
 
             var greedy = new GreedyAlgo();
-            greedy.ComputeMaxTasksCompleted();
+            // greedy.ComputeMaxTasksCompleted();
+            greedy.ComputeMaxPrioritizedTasksCompleted();
 
             // DicesSumModel diceSumModel = new DicesSumModel();
             // diceSumModel.TestProbabilityDiceSum();
