@@ -150,9 +150,11 @@ namespace dot_core_asp.Models
 
             // Hence the equation for the j-th level is
             // 2^j, .., 2^(j+1)-1
-            // at 0-th level, j=0.
-            // 1, .., 2^(0+1)-1 = 1, .., 1 = 1
+            // At 0-th level with j=0 we get,
+            // 1, .., 2^(0+1)-1 => 1, .., 1 => 1
             // Create 3 level Graph
+            // Each level has 2^(level) nodes
+            // At 1'th level there is 2 nodes
             var endLevel = 2;
             var rangeLevels = Enumerable.Range(0, endLevel + 1);
             
@@ -167,13 +169,18 @@ namespace dot_core_asp.Models
                 verticesInTree.Add(vertex);
             }
 
+            IEnumerable<int> rangeNodeIndices;
+            IEnumerable<int> rangeNodeIndicesParent;
+            IEnumerable<int> rangeNodeIndicesChild;
             foreach (var level in rangeLevels)
             {   
-                IEnumerable<int> rangeNodeIndices;
+                
                 if (level == 0)
                 {
                     var level_plus_one = level + 1;
-                    rangeNodeIndices = Enumerable.Range((int)Math.Pow(2, level_plus_one), (int)Math.Pow(2, level_plus_one)).Where(i => i % 2 == 0);
+                    var lowestNodeIndexInLevel = (int)Math.Pow(2, level_plus_one);
+                    var nodesInLevel = lowestNodeIndexInLevel;
+                    rangeNodeIndices = Enumerable.Range(lowestNodeIndexInLevel, nodesInLevel).Where(i => i % 2 == 0);
                     foreach (var idx in rangeNodeIndices)
                     {
                         var node = new Node();
@@ -186,21 +193,33 @@ namespace dot_core_asp.Models
                 }
                 else
                 {
-                    var level_minus_one = level - 1;
-                    var rangeNodeIndices_parent = Enumerable.Range((int)Math.Pow(2, level_minus_one), (int)Math.Pow(2, level_minus_one));
+                    
+                    // var level_minus_one = level - 1;
+                    // var lowestNodeIndexInLevelParent = (int)Math.Pow(2, level_minus_one);
+                    // var nodesInLevelParent = lowestNodeIndexInLevelParent;
+                    // var rangeNodeIndicesParent = Enumerable.Range(lowestNodeIndexInLevelParent, nodesInLevelParent);
+                    rangeNodeIndicesParent = CreateNodeIndices(level - 1);
 
-                    rangeNodeIndices = Enumerable.Range((int)Math.Pow(2, level), (int)Math.Pow(2, level));
+                    // var lowestNodeIndexInLevel = (int)Math.Pow(2, level);
+                    // var nodesInLevel = lowestNodeIndexInLevel;
+                    // rangeNodeIndices = Enumerable.Range(lowestNodeIndexInLevel, nodesInLevel);
+                    rangeNodeIndices = CreateNodeIndices(level);
 
-                    var level_plus_one = level + 1;
-                    var rangeNodeIndicesChild = Enumerable.Range((int)Math.Pow(2, level_plus_one), (int)Math.Pow(2, level_plus_one)).Where(i => i % 2 == 0);
+                    // var level_plus_one = level + 1;
+                    // var lowestNodeIndexInLevelChild = (int)Math.Pow(2, level_plus_one);
+                    // var nodesInLevelChild = lowestNodeIndexInLevelChild;
+                    // rangeNodeIndicesChild = Enumerable.Range(lowestNodeIndexInLevelChild, nodesInLevelChild);
+                    // var rangeNodeIndicesChild = Enumerable.Range(lowestNodeIndexInLevelChild, nodesInLevelChild).Where(i => i % 2 == 0);
+                    rangeNodeIndicesChild = CreateNodeIndices(level + 1);
 
                     var iteSlow = 0;
                     var ite = 0;
+                    bool changeParentNode;
                     foreach (var jte in Enumerable.Range(0, rangeNodeIndices.Count()))
                     {
                         var idx_current = rangeNodeIndices.ElementAt(jte);
                         var idx_child = rangeNodeIndicesChild.ElementAt(ite);
-                        var idx_parent = rangeNodeIndices_parent.ElementAt(iteSlow);
+                        var idx_parent = rangeNodeIndicesParent.ElementAt(iteSlow);
                         var node = new Node();
 
                         node.ResidingNode = verticesInTree[idx_current - 1];
@@ -213,11 +232,21 @@ namespace dot_core_asp.Models
                         node.Parent = verticesInTree[idx_parent - 1];
 
                         Nodes.Add(node);
-                        ite += 1;
-                        if ((jte + 1) % 2 == 0) { iteSlow += 1; }
+                        ite += 2;
+                        changeParentNode = (jte + 1) % 2 == 0;
+                        if (changeParentNode) { iteSlow += 1; }
                     }
                 }              
             }
+        }
+
+        public IEnumerable<int> CreateNodeIndices(int level)
+        {
+            var lowestNodeIndexInLevel = (int)Math.Pow(2, level);
+            var nodesInLevel = lowestNodeIndexInLevel;
+            var rangeNodeIndices = Enumerable.Range(lowestNodeIndexInLevel, nodesInLevel);
+            return rangeNodeIndices;
+
         }
     }
 
