@@ -177,21 +177,6 @@ namespace dot_core_asp.Models
                 
                 if (level == 0)
                 {
-                    // var level_plus_one = level + 1;
-                    // var lowestNodeIndexInLevel = (int)Math.Pow(2, level_plus_one);
-                    // var nodesInLevel = lowestNodeIndexInLevel;
-                    // rangeNodeIndices = Enumerable.Range(lowestNodeIndexInLevel, nodesInLevel).Where(i => i % 2 == 0);
-                    // rangeNodeIndicesChild = CreateNodeIndices(level + 1).Where(i => i % 2 == 0);
-
-                    // foreach (var idx in rangeNodeIndicesChild)
-                    // {
-                    //     var node = new Node();
-                    //     node.ResidingNode = verticesInTree[level];
-                    //     node.Child1 = verticesInTree[idx - 1];
-                    //     node.Child2 = verticesInTree[idx];
-
-                    //     Nodes.Add(node);
-                    // }
                     rangeNodeIndicesChild = CreateNodeIndices(level + 1);
                     var node = new Node();
                     node.ResidingNode = verticesInTree[level];
