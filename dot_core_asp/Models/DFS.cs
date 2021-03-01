@@ -193,23 +193,8 @@ namespace dot_core_asp.Models
                 }
                 else
                 {
-                    
-                    // var level_minus_one = level - 1;
-                    // var lowestNodeIndexInLevelParent = (int)Math.Pow(2, level_minus_one);
-                    // var nodesInLevelParent = lowestNodeIndexInLevelParent;
-                    // var rangeNodeIndicesParent = Enumerable.Range(lowestNodeIndexInLevelParent, nodesInLevelParent);
                     rangeNodeIndicesParent = CreateNodeIndices(level - 1);
-
-                    // var lowestNodeIndexInLevel = (int)Math.Pow(2, level);
-                    // var nodesInLevel = lowestNodeIndexInLevel;
-                    // rangeNodeIndices = Enumerable.Range(lowestNodeIndexInLevel, nodesInLevel);
                     rangeNodeIndices = CreateNodeIndices(level);
-
-                    // var level_plus_one = level + 1;
-                    // var lowestNodeIndexInLevelChild = (int)Math.Pow(2, level_plus_one);
-                    // var nodesInLevelChild = lowestNodeIndexInLevelChild;
-                    // rangeNodeIndicesChild = Enumerable.Range(lowestNodeIndexInLevelChild, nodesInLevelChild);
-                    // var rangeNodeIndicesChild = Enumerable.Range(lowestNodeIndexInLevelChild, nodesInLevelChild).Where(i => i % 2 == 0);
                     rangeNodeIndicesChild = CreateNodeIndices(level + 1);
 
                     var iteSlow = 0;
