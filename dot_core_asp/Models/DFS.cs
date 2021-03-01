@@ -177,12 +177,11 @@ namespace dot_core_asp.Models
                 
                 if (level == 0)
                 {
-                    rangeNodeIndicesChild = CreateNodeIndices(level + 1);
                     var node = new Node();
+                    rangeNodeIndicesChild = CreateNodeIndices(level + 1);
                     node.ResidingNode = verticesInTree[level];
                     node.Child1 = verticesInTree[rangeNodeIndicesChild.ElementAt(0)];
                     node.Child2 = verticesInTree[rangeNodeIndicesChild.ElementAt(0) - 1];
-
                     Nodes.Add(node);
                 }
                 else
@@ -191,16 +190,18 @@ namespace dot_core_asp.Models
                     rangeNodeIndices = CreateNodeIndices(level);
                     rangeNodeIndicesChild = CreateNodeIndices(level + 1);
 
+                    bool changeParentNode;
+                    int idx_current;
+                    int idx_child;
+                    int idx_parent;
                     var iteSlow = 0;
                     var ite = 0;
-                    bool changeParentNode;
                     foreach (var jte in Enumerable.Range(0, rangeNodeIndices.Count()))
                     {
-                        var idx_current = rangeNodeIndices.ElementAt(jte);
-                        var idx_child = rangeNodeIndicesChild.ElementAt(ite);
-                        var idx_parent = rangeNodeIndicesParent.ElementAt(iteSlow);
                         var node = new Node();
-
+                        idx_current = rangeNodeIndices.ElementAt(jte);
+                        idx_child = rangeNodeIndicesChild.ElementAt(ite);
+                        idx_parent = rangeNodeIndicesParent.ElementAt(iteSlow);
                         node.ResidingNode = verticesInTree[idx_current - 1];
 
                         if (level != endLevel)
@@ -208,9 +209,10 @@ namespace dot_core_asp.Models
                             node.Child1 = verticesInTree[idx_child - 1];
                             node.Child2 = verticesInTree[idx_child];
                         }
-                        node.Parent = verticesInTree[idx_parent - 1];
 
+                        node.Parent = verticesInTree[idx_parent - 1];
                         Nodes.Add(node);
+                        
                         ite += 2;
                         changeParentNode = (jte + 1) % 2 == 0;
                         if (changeParentNode) { iteSlow += 1; }
