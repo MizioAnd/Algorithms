@@ -15,8 +15,8 @@ namespace dot_core_asp
     {
         public static void Main(string[] args)
         {
-            // var dfs = new DFS();
-            // dfs.TestDFS();
+            var dfs = new DFS();
+            dfs.TestDFS();
             // var bfs = new BFS();
             // bfs.TestBFS();
 

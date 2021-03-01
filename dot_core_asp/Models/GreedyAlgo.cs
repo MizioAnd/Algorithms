@@ -8,11 +8,25 @@ namespace dot_core_asp.Models
     /// <summary>
     /// A greedy algo is an algorithm that make local choices that optimize a problem. It has only one shot a doing this and the hope is then
     /// that this also holds as a globally optimized solution. But this cannot not always be ensured.
+    /// The completion for at task i is T[i] where task coming before are those that conveniently should be completed first eith due to priority or some other param.
+    /// C(1) = T[1] = 1
+    /// C(2) = T[1] + T[2] = 1 + 2 = 3
+    /// C(3) = T[1] + T[2] + T[3] = 1 + 2 + 3 = 6
+    /// Objective function needs to be minimized and in order to get the best result a sorting param that combines both priority and completeness times for individual task.
+    /// F = P[1] * C(1) + P[2] * C(2) + ...... + P[N] * C(N)
+    /// ex.
+    /// T = {5, 2} and P = {3, 1}
+    ///  ( P[1] / T[1] ) > ( P[2] / T[2] ) as sort param,
+    /// F = P[1] * C(1) + P[2] * C(2) = 3 * 5 + 1 * 7 = 22
     /// </summary>
     public class GreedyAlgo
     {
         // Time that a task takes to complete.
         public List<int> TaskTimes = Enumerable.Range(1, 10).ToList<int>();
+        public int TaskTimesSum 
+        { 
+            get { return TaskTimes.Sum(); } 
+        }
         public IList<int> TotalTimesToCompleteATask = new List<int>();
         public IList<int> PriorityObjRes = new List<int>();
         public List<int> Priorities = Enumerable.Range(1, 10).ToList<int>();
@@ -29,7 +43,7 @@ namespace dot_core_asp.Models
                 counter += 1;
             }
             ratioTuple.Sort(CompareUsingRatio);
-            // Max first
+            // Max first, since highest ratio is most important
             ratioTuple.Reverse();
 
             var sortIdxs = ratioTuple.Select(x => x.Item2);
@@ -102,7 +116,7 @@ namespace dot_core_asp.Models
         public void ComputeMaxTasksCompleted()
         {
             // compareMaxExceptOneIntegerDel += CompareMaxExceptOneInteger;
-            var timeT = 2000;
+            var timeT = TaskTimesSum / 2;
 
             // var compareMethodInfo = RuntimeReflectionExtensions.GetMethodInfo(compareMaxExceptOneIntegerDel);
             // var del = compareMethodInfo.CreateDelegate(compareMethodInfo.DeclaringType);
@@ -162,6 +176,14 @@ namespace dot_core_asp.Models
             Console.WriteLine(String.Format("Objective function value:{0}", priorityObjRes));
         }
 
+        /// <summary>
+        /// For all the tasks completed a sum is computed with each of the task's priority times the total time for that task to complete,
+        /// which is the sum of times of previous completed tasks and with time of the task itself. Which in case all long task times get completed first,
+        /// then every task after those will get a very high total time to complete value, which is far from optimal according to this metric
+        /// </summary>
+        /// <param name="totalTimesToCompleteATask"></param>
+        /// <param name="priorities"></param>
+        /// <returns></returns>
         public int PriorityObjectiveFun(IList<int> totalTimesToCompleteATask, IList<int> priorities)
         {
             var sum = 0;
@@ -172,6 +194,15 @@ namespace dot_core_asp.Models
             return sum;     
         }
 
+        /// <summary>
+        /// In order to minimize the objective function which is a measure for how good a greedy algorithm is.
+        /// In below the optimized way of sorting task is according to each task's priority/(time to complete a task)
+        /// Priority is incrementing such that a task with high priority like 10 and little time to complete gets a large ratio
+        /// compared to a task of low priority 1 and same time to complete
+        /// </summary>
+        /// <param name="timesToCompleteATask"></param>
+        /// <param name="priorities"></param>
+        /// <returns></returns>
         public IList<double> RatioMinimizationObjectiveFun(IList<int> timesToCompleteATask, IList<int> priorities)
         {
             var ratios = new List<double>();
